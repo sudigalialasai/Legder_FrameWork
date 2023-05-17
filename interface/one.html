@@ -1,0 +1,172 @@
+ 
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Submit Marks</title>
+	<style>
+		body{
+		background-color: rgb(137, 137, 234);
+		padding:0;
+		margin:0;
+		border:0;
+		text-align: center;
+		}
+	</style>
+  </head>
+  <body >
+    <h1>Submit Marks</h1>
+    <form id="marks-form">
+      <label for="roll-number">Roll   Number :</label>
+      <input type="number" id="roll-number" required /><br />
+      <label for="marks">Marks Obtained :</label>
+      <input type="number" id="marks" required /><br />
+      <button type="submit" id="submit-button">Submit</button>
+    </form>
+
+    <script src="https://cdn.jsdelivr.net/npm/web3@1.6.0/dist/web3.min.js"></script>
+    <script>
+		window.addEventListener('load', function () {
+			if (window.ethereum) {
+				window.web3 = new Web3(ethereum);
+				ethereum.enable()
+					.then(() => {
+						console.log("Ethereum enabled");
+
+						web3.eth.getAccounts(function (err, acc) {
+							if (err != null) {
+								self.setStatus("There was an error fetching your accounts");
+								return;
+							}
+							if (acc.length > 0) {
+								console.log(acc);
+							}
+						});
+					})
+					.catch(() => {
+						console.warn('User didn\'t allow access to accounts.');
+						waitLogin();
+					});
+			} else {
+				console.log("Non-Ethereum browser detected. You should consider installing MetaMask.");
+			}
+		});
+
+      // Connect to the Ethereum network using Web3.js
+      const web3 = new Web3(window.ethereum);
+
+      // Contract address and ABI
+      const contractAddress = "0x49a5CC69fcEF83D1A22dCC7C8442f97F52cB6030";
+      const contractABI =  
+	  [
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "rollNumber",
+				"type": "uint256"
+			}
+		],
+		"name": "approveGrade",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "rollNumber",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "marks",
+				"type": "uint256"
+			}
+		],
+		"name": "submitGrade",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "rollNumber",
+				"type": "uint256"
+			}
+		],
+		"name": "viewMyGrade",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	}
+];
+      // Contract instance
+      const contract = new web3.eth.Contract(contractABI, contractAddress);
+
+      // Submit marks
+      const marksForm = document.getElementById("marks-form");
+      const submitButton = document.getElementById("submit-button");
+
+      marksForm.addEventListener("submit", async (event) => {
+        event.preventDefault();
+
+        const rollNumber = document.getElementById("roll-number").value;
+        const marks = document.getElementById("marks").value;
+		if (marks<0  || marks>100){
+			alert("Invalid Entry")
+			return 	
+		}
+		console.log(rollNumber,marks)
+        const data={
+			"rollno":rollNumber,
+			"marks":marks,
+		}
+		try {
+			const response= fetch("http://127.0.0.1:2000/student",{
+				method:"POST",
+				headers:{
+					"Content-type":"application/json"
+				},
+				body:JSON.stringify(data),
+			})
+		response.then(function(data){
+			console.log(data)
+			return data.json()
+		}).then(async function(data){
+			console.log(data)
+			if (data["message"]=="rollno already exist"){
+				alert(data['message'])
+				
+			}
+			else{
+				const accounts = await window.ethereum.request({
+					method: "eth_requestAccounts",
+				  });
+				  console.log(accounts)
+				  await contract.methods.submitGrade(rollNumber, marks).send({
+					from: accounts[0],
+				  });
+				alert("Marks submitted successfully!");
+			}
+		})
+         
+        } catch (error) {
+          console.error(error);
+          alert("Error submitting marks. Please try again later.");
+        }
+      });
+    </script>
+  </body>
+</html>

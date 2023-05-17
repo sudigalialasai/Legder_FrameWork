@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Table with Two Columns</title>
+	<style>
+		table {
+			border-collapse: collapse;
+			width: 50%;
+			margin: 0 auto;
+			color: #333;
+			font-family: Arial, sans-serif;
+			font-size: 14px;
+			text-align: left;
+		}
+
+		th {
+			background-color: #0066CC;
+			color: #fff;
+			font-weight: bold;
+			padding: 10px;
+			text-transform: uppercase;
+		}
+
+		td {
+			padding: 10px;
+			border: 1px solid #ccc;
+		}
+        
+	</style>
+</head>
+<body>
+	<h1 style="text-align: center;">Data of Student Marks</h1>
+	<table id="myTable">
+		<thead>
+			<tr>
+				<th>Roll No</th>
+				<th>Marks</th>
+			</tr>
+		</thead>
+		<tbody>
+		</tbody>
+	</table>
+	<script >
+        // Sample response data
+        const responseData= fetch("http://127.0.0.1:2000/view")
+        responseData.then(function(data){
+            return data.json()
+        }).then((data)=>{
+            dat=data["data"]
+            var tableBody = document.querySelector("#myTable tbody");
+
+// Loop through the response data and create table rows and cells
+for (var i = 0; i < dat.length; i++) {
+// Create a new row element
+var newRow = document.createElement("tr");
+
+// Create two new cell elements and set their values
+var column1Cell = document.createElement("td");
+column1Cell.textContent = dat[i][0];
+var column2Cell = document.createElement("td");
+column2Cell.textContent = dat[i][1];
+
+// Add the cells to the row
+newRow.appendChild(column1Cell);
+newRow.appendChild(column2Cell);
+
+// Add the row to the table body
+tableBody.appendChild(newRow);
+}
+
+        })
+
+
+// Get the table body element
+
+    </script> <!-- Include your JavaScript file -->
+</body>
+</html>

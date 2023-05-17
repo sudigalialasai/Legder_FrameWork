@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>View Student Grade</title>
+    <!-- <script src="https://cdn.ethers.io/lib/ethers-5.2.umd.min.js" integrity="sha384-xX9jVq+w/D3uJ8U6gTRiFbLyHm/rJSd6T8C4Wax9i1RKfn6+jBJvnQad8y7iInzv" crossorigin="anonymous"></script> -->
+  <style>
+	body{
+		background-color: rgb(137, 137, 234);
+		padding:0;
+		margin:0;
+		border:0;
+	}
+	#view-student{
+		height: 100vh;
+		width: 100vw;
+		display: flex;
+		flex-direction:column;
+		justify-content: center;
+		align-items: center;
+	}
+    #result{
+        font-size: 20px;
+        margin-top:  1
+		8px;
+    }
+  </style>
+  </head>
+
+  <body>
+	<div id="view-student">
+		<h1>View Student Grade</h1>
+		<form id="gradeForm">
+		  <label for="studentAddress">Student Address:</label>
+		  <input type="text" id="studentAddress" required />
+		  <button type="submit">View Grade</button>
+		</form>
+        <div id="result" ><span>Marks:</span><span id="res">result</span></div>
+
+	</div>
+    
+	<script src="https://cdn.jsdelivr.net/npm/web3@1.6.0/dist/web3.min.js"></script>
+    <script>
+
+		window.addEventListener('load', function () {
+			if (window.ethereum) {
+				window.web3 = new Web3(ethereum);
+				window.ethereum.request({
+                    method: "eth_requestAccounts",
+                  })
+					.then(() => {
+						console.log("Ethereum enabled");
+
+						web3.eth.getAccounts(function (err, acc) {
+							if (err != null) {
+								self.setStatus("There was an error fetching your accounts");
+								return;
+							}
+							if (acc.length > 0) {
+								console.log(acc);
+							}
+						});
+					})
+					.catch(() => {
+						console.warn('User didn\'t allow access to accounts.');
+						waitLogin();
+					});
+			} else {
+				console.log("Non-Ethereum browser detected. You should consider installing MetaMask.");
+			}
+		});
+
+      // Connect to the smart contract
+	  const web3 = new Web3(window.ethereum);
+	  const contractAddress = '0x49a5CC69fcEF83D1A22dCC7C8442f97F52cB6030';
+	  const abi = 
+	  [
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "rollNumber",
+				"type": "uint256"
+			}
+		],
+		"name": "approveGrade",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "rollNumber",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "marks",
+				"type": "uint256"
+			}
+		],
+		"name": "submitGrade",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "rollNumber",
+				"type": "uint256"
+			}
+		],
+		"name": "viewMyGrade",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	}
+];
+  
+  const contract = new web3.eth.Contract(abi , contractAddress);
+  console.log(contractAddress);
+      // Handle form submission
+const form = document.getElementById("gradeForm");
+form.addEventListener("submit", async (event) => {
+  event.preventDefault();
+
+  const studentAddress = document.getElementById("studentAddress").value;
+  console.log(studentAddress);
+
+  // Call the smart contract to get the student's grade
+  try {
+    const result = await contract.methods.viewMyGrade(studentAddress).call();
+    console.log(result);
+    const re=document.getElementById("res")
+    re.innerHTML=result
+    //const grade = result[0];
+    //const status = result[1];
+    //const approved = result[2];
+
+    // Display the result in the #result div element
+    const resultDiv = document.getElementById("result");
+    resultDiv.innerHTML = `Grade: ${grade}<br>Status: ${status}<br>Approved: ${approved}`;
+  } catch (error) {
+    console.error(error);
+  }
+});
+
+    </script>
+  </body>
+</html>

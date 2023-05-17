@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Approve Marks - Higher Authority</title>
+    <style>
+        /* Add some basic styles */
+        body {
+            font-family: Arial, sans-serif;
+        }
+        h1 {
+            text-align: center;
+        }
+        form {
+            margin: 0 auto;
+            width: 400px;
+        }
+        input[type="submit"] {
+            display: block;
+            margin: 0 auto;
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <h1>Approve Marks - Higher Authority</h1>
+    <form id="gradeForm">
+        <label for="studentAddress">Student Address:</label>
+        <input type="text" id="studentAddress" name="studentAddress"><br><br>
+        <input type="submit" id="submit-button" value="Approve Marks" " >
+    </form>
+     
+	<script src="https://cdn.jsdelivr.net/npm/web3@1.6.0/dist/web3.min.js"></script>
+    <script>
+
+        window.addEventListener('load', function () {
+			if (window.ethereum) {
+				window.web3 = new Web3(ethereum);
+				window.ethereum.request({
+                    method: "eth_requestAccounts",
+                  })
+					.then(() => {
+						console.log("Ethereum enabled");
+
+						web3.eth.getAccounts(function (err, acc) {
+							if (err != null) {
+								self.setStatus("There was an error fetching your accounts");
+								return;
+							}
+							if (acc.length > 0) {
+								console.log(acc);
+							}
+						});
+					})
+					.catch(() => {
+						console.warn('User didn\'t allow access to accounts.');
+						waitLogin();
+					});
+			} else {
+				console.log("Non-Ethereum browser detected. You should consider installing MetaMask.");
+			}
+		});
+
+        // Connect to the Ethereum network using Web3.js
+		const web3 = new Web3(window.ethereum);
+         
+        // Create an instance of the smart contract using its address
+        const contractAddress = '0x49a5CC69fcEF83D1A22dCC7C8442f97F52cB6030';
+        const abi = 
+        [
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "rollNumber",
+				"type": "uint256"
+			}
+		],
+		"name": "approveGrade",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "rollNumber",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "marks",
+				"type": "uint256"
+			}
+		],
+		"name": "submitGrade",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "rollNumber",
+				"type": "uint256"
+			}
+		],
+		"name": "viewMyGrade",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	}
+];
+        const contract = new web3.eth.Contract(abi , contractAddress);
+        
+        // Function to approve marks for a student
+        const gradeForm=document.getElementById("gradeForm");
+        const submitButton = document.getElementById("submit-button");
+
+         gradeForm.addEventListener("submit", async (event) => {
+        event.preventDefault();
+            
+                
+                // Get the student address entered by the user
+            const studentAddress = document.getElementById("studentAddress").value;
+                
+            try{ 
+				const accounts = await window.ethereum.request({
+					method: "eth_requestAccounts",
+				  });
+				  console.log(accounts)
+				// Call the approveMarks function of the smart contract
+                const tx = await contract.methods.approveGrade(studentAddress).send({from:accounts[0]})
+                
+                // Wait for the transaction to be confirmed
+                <!-- await tx.wait(); -->
+                
+                // Show a success message to the user
+                console.log("connected")
+                alert("Marks approved for student: " + studentAddress);
+            } catch (error) {
+                console.log(error);
+                alert("Error approving marks for student: " + studentAddress);
+            }
+        })
+    </script>
+</body>
+</html>
